@@ -5,6 +5,17 @@ import (
 	"unicode/utf8"
 )
 
+var keyword_set = map[string]bool {
+	"if": true,
+	"else": true,
+	"return": true,
+	"proc": true,
+	"var": true,
+	"const": true,
+	"for" : true,
+	"while" : true,
+}
+
 type TokenType string
 
 const (
@@ -86,6 +97,8 @@ func buildIdentOrKw(i int, str string, t Token) (Token, int) {
 	var literal []rune
 	for i < len(str) {
 		var r, size =  utf8.DecodeRuneInString(str[i:])
+
+		//shouldnt really ignore non-letters, but fine for now
 		if !isLetter(r) {
 			break
 		}
@@ -93,6 +106,7 @@ func buildIdentOrKw(i int, str string, t Token) (Token, int) {
 		i += size
 	}
 	t.Literal = string(literal)
+	determineIdentOrKw(&t)
 	return t,i
 }
 
@@ -108,9 +122,12 @@ func buildFromLetters(i int, str string) (Token, int) {
 
 }
 
-func determineWordType(t Token) Token {
-
-	return t
+func determineIdentOrKw(t *Token) {
+	if keyword_set[t.Literal] {
+		t.Type = Keyword
+	} else {
+		t.Type = Identifier
+	}
 }
 
 /*
@@ -118,18 +135,25 @@ TODO:
 	Dont ignore dots and commas and semicolons and shit
 */
 func strToTokens(str string) (tokens []Token) {
-	for _, ch := range str {
+	var i = 0
+	for i < len(str) {
+		r, size := utf8.DecodeRuneInString(str[i:])
 		switch {
-		case isLetter(ch):
-			return
-		case isNumber(ch):
-			return
-		case isOp(ch):
-			return
-		case isWhSpace(ch):
-			return
+		case isLetter(r):
+			var token, index = buildFromLetters(i, str)
+			tokens = append(tokens, token)
+			i = index
+		case isNumber(r):
+			var token, index = buildNumeric(i, str)
+			tokens = append(tokens, token)
+			i = index
+		case isOp(r):
+			tokens = append(tokens, Token{Type: Operator, Literal: string(r)})
+			i+=size
+		case isWhSpace(r):
+			i+=size
 		default:
-			return
+			i+=size
 		}
 	}
 	return
