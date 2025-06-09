@@ -1,0 +1,5 @@
+/releases
+*.exe
+*.out
+*.log
+*.tmp

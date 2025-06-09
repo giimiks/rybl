@@ -40,6 +40,15 @@ func isNumber(ch rune) bool {
 	return unicode.IsDigit(ch)
 }
 
+func isDelimiter(ch rune) bool {
+	switch ch {
+	case '(', ')', '{', '}', ';', ',', '.':
+		return true
+	default:
+		return false
+	}
+}
+
 func isOp(ch rune) bool {
 	switch {
 	case ch == '+':
@@ -119,7 +128,6 @@ func buildFromLetters(i int, str string) (Token, int) {
 	} else {
 		return buildIdentOrKw(i, str, t)
 	}
-
 }
 
 func determineIdentOrKw(t *Token) {
@@ -134,7 +142,7 @@ func determineIdentOrKw(t *Token) {
 TODO:
 	Dont ignore dots and commas and semicolons and shit
 */
-func strToTokens(str string) (tokens []Token) {
+func StrToTokens(str string) (tokens []Token) {
 	var i = 0
 	for i < len(str) {
 		r, size := utf8.DecodeRuneInString(str[i:])
@@ -152,9 +160,12 @@ func strToTokens(str string) (tokens []Token) {
 			i+=size
 		case isWhSpace(r):
 			i+=size
+		case isDelimiter(r):
+			tokens = append(tokens, Token{Type: Delimiter, Literal: string(r)})
+			i+=size
 		default:
 			i+=size
 		}
 	}
-	return
+	return tokens
 }
