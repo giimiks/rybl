@@ -113,6 +113,10 @@ func determineWordType(t Token) Token {
 	return t
 }
 
+/*
+TODO:
+	Dont ignore dots and commas and semicolons and shit
+*/
 func strToTokens(str string) (tokens []Token) {
 	for _, ch := range str {
 		switch {
