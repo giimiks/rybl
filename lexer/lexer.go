@@ -55,7 +55,7 @@ func buildNumeric(i int, str string) (Token, int) {
 	t.Type = NumberLiteral
 	var literal []rune
 	for i < len(str) {
-		r, size := utf8.DecodeRuneInString(str[i:])
+		var r, size = utf8.DecodeRuneInString(str[i:])
 		if !isNumber(r) {
 			break
 		}
@@ -64,6 +64,53 @@ func buildNumeric(i int, str string) (Token, int) {
 	}
 	t.Literal = string(literal)
 	return t,i
+}
+
+func buildStrLiteral(i int, str string, t Token) (Token, int) {
+	var literal []rune
+	for i < len(str) {
+		var r, size =  utf8.DecodeRuneInString(str[i:])
+		if r == '"' {
+			i+=size
+			break
+		}
+		literal = append(literal, r)
+		i += size
+	}
+	t.Literal = string(literal)
+	return t, i
+
+}
+
+func buildIdentOrKw(i int, str string, t Token) (Token, int) {
+	var literal []rune
+	for i < len(str) {
+		var r, size =  utf8.DecodeRuneInString(str[i:])
+		if !isLetter(r) {
+			break
+		}
+		literal = append(literal, r)
+		i += size
+	}
+	t.Literal = string(literal)
+	return t,i
+}
+
+func buildFromLetters(i int, str string) (Token, int) {
+	var t = Token{}
+	var r, _ =  utf8.DecodeRuneInString(str[i:])
+	if r == '"' {
+		t.Type = StringLiteral
+		return buildStrLiteral(i+1, str, t)
+	} else {
+		return buildIdentOrKw(i, str, t)
+	}
+
+}
+
+func determineWordType(t Token) Token {
+
+	return t
 }
 
 func strToTokens(str string) (tokens []Token) {
