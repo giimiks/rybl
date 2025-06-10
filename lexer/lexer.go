@@ -14,6 +14,10 @@ var keyword_set = map[string]bool {
 	"const": true,
 	"for" : true,
 	"while" : true,
+	"number": true,
+	"string": true,
+	"bool": true,
+	"array": true,
 }
 
 type TokenType string
@@ -30,10 +34,12 @@ const (
 type Token struct {
 	Type    TokenType
 	Literal string
+	Row int
+	Col int
 }
 
 func isLetter(ch rune) bool {
-	return unicode.IsLetter(ch)
+	return unicode.IsLetter(ch) || ch == '"'
 }
 
 func isNumber(ch rune) bool {
@@ -98,6 +104,7 @@ func buildStrLiteral(i int, str string, t Token) (Token, int) {
 		i += size
 	}
 	t.Literal = string(literal)
+	t.Type = StringLiteral
 	return t, i
 
 }
@@ -138,34 +145,52 @@ func determineIdentOrKw(t *Token) {
 	}
 }
 
+func isEOL(ch rune) bool {
+	return ch == '\n'
+}
+
 /*
 TODO:
 	Dont ignore dots and commas and semicolons and shit
 */
 func StrToTokens(str string) (tokens []Token) {
 	var i = 0
+	var row, col = 0,0
 	for i < len(str) {
 		r, size := utf8.DecodeRuneInString(str[i:])
 		switch {
 		case isLetter(r):
 			var token, index = buildFromLetters(i, str)
+			token.Col = col
+			token.Row = row
 			tokens = append(tokens, token)
 			i = index
+		case isEOL(r):
+			col = 0
+			row+=1
+			i+=size
 		case isNumber(r):
 			var token, index = buildNumeric(i, str)
+			token.Col = col
+			token.Row = row
 			tokens = append(tokens, token)
 			i = index
 		case isOp(r):
-			tokens = append(tokens, Token{Type: Operator, Literal: string(r)})
+			var token = Token{Type: Operator, Literal: string(r), Row: row, Col: col}	
+			tokens = append(tokens, token)
 			i+=size
 		case isWhSpace(r):
+			col = i
 			i+=size
 		case isDelimiter(r):
-			tokens = append(tokens, Token{Type: Delimiter, Literal: string(r)})
+			var token = Token{Type: Delimiter, Literal: string(r), Row: row, Col: col}	
+			tokens = append(tokens, token)
 			i+=size
 		default:
 			i+=size
+
 		}
+		col++
 	}
 	return tokens
 }

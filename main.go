@@ -1,10 +1,13 @@
 package main
 
-import "rybl/lexer"
+import (
+	"fmt"
+	"rybl/lexer"
+)
 
 func main() {
-	var tokens = lexer.StrToTokens("var const func fun while debil \"+ - +- čurák return for \\ e'ěbš ene . , = ==")
+	var tokens = lexer.StrToTokens("var promenna = 512\n;while (promenna > 0) {\npromenna-=1\n		}")
 	for i := range tokens {
-		println(tokens[i].Type, tokens[i].Literal)
+		fmt.Printf("Type: %s Val: %s Row,Col: %d,%d\n",tokens[i].Type,tokens[i].Literal, tokens[i].Row, tokens[i].Col)
 	}
 }
